@@ -99,13 +99,6 @@ class _DetailScreenState extends State<DetailScreen>
             ),
             actions: [
               IconButton(
-                icon: Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _isFavorite ? Colors.redAccent : Colors.white,
-                ),
-                onPressed: _toggleFavorite,
-              ),
-              IconButton(
                 icon: const Icon(Icons.share),
                 onPressed: () => ScaffoldMessenger.of(
                   context,
@@ -174,6 +167,18 @@ class _DetailScreenState extends State<DetailScreen>
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    right: 16,
+                    child: IconButton(
+                      icon: Icon(
+                        _isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite ? Colors.redAccent : Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: _toggleFavorite,
                     ),
                   ),
                 ],
