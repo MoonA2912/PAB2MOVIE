@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_daftar_movie/models/movie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DetailScreen extends StatefulWidget {
   final Movie movie;
@@ -27,12 +28,46 @@ class _DetailScreenState extends State<DetailScreen>
       vsync: this,
     );
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
+    _loadFavoriteStatus();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteIds = prefs.getStringList('favorite_movies') ?? [];
+    setState(() {
+      _isFavorite = favoriteIds.contains(widget.movie.id.toString());
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteIds = prefs.getStringList('favorite_movies') ?? [];
+    final movieId = widget.movie.id.toString();
+
+    if (_isFavorite) {
+      favoriteIds.remove(movieId);
+    } else {
+      favoriteIds.add(movieId);
+    }
+
+    await prefs.setStringList('favorite_movies', favoriteIds);
+    setState(() => _isFavorite = !_isFavorite);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isFavorite ? '♥ Added to favorites' : 'Removed from favorites',
+        ),
+        backgroundColor: _isFavorite ? Colors.red : Colors.grey[700],
+        duration: const Duration(milliseconds: 700),
+      ),
+    );
   }
 
   void _toggleRotation() {
@@ -44,19 +79,6 @@ class _DetailScreenState extends State<DetailScreen>
     setState(() {
       _isRotated = !_isRotated;
     });
-  }
-
-  void _toggleFavorite() {
-    setState(() => _isFavorite = !_isFavorite);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isFavorite ? '♥ Added to favorites' : 'Removed from favorites',
-        ),
-        backgroundColor: _isFavorite ? Colors.red : Colors.grey[700],
-        duration: const Duration(milliseconds: 700),
-      ),
-    );
   }
 
   @override

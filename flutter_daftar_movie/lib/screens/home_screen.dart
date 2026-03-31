@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_daftar_movie/models/movie.dart';
 import 'package:flutter_daftar_movie/screens/detail_screen.dart';
+import 'package:flutter_daftar_movie/screens/favorite_screen.dart'; // Tambahkan import ini
 import 'package:flutter_daftar_movie/services/api_services.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -83,6 +84,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.black87),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const FavoriteScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
