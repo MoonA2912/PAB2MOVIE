@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_daftar_movie/models/movie.dart';
 import 'package:flutter_daftar_movie/screens/detail_screen.dart';
-import 'package:flutter_daftar_movie/screens/favorite_screen.dart'; // Tambahkan import ini
 import 'package:flutter_daftar_movie/services/api_services.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,9 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Movie> _allMovies = [];
   List<Movie> _trendingMovies = [];
   List<Movie> _popularMovies = [];
-  List<Movie> _searchResults = [];
   bool _loading = true;
-  final TextEditingController _searchController = TextEditingController();
 
   // helper untuk animasi scroll
   void _scrollHorizontally(ScrollController ctrl, double offset) {
@@ -39,12 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadMovies();
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadMovies() async {
     final all = await _apiService.getAllMovies();
     final trending = await _apiService.getTrendingMovies();
@@ -55,19 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _trendingMovies = trending.map((e) => Movie.fromJson(e)).toList();
       _popularMovies = popular.map((e) => Movie.fromJson(e)).toList();
       _loading = false;
-    });
-  }
-
-  void _onSearchChanged(String q) {
-    if (q.trim().isEmpty) {
-      setState(() => _searchResults.clear());
-      return;
-    }
-    final lower = q.toLowerCase();
-    setState(() {
-      _searchResults = _allMovies
-          .where((m) => m.title.toLowerCase().contains(lower))
-          .toList();
     });
   }
 
@@ -84,74 +62,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.black87),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const FavoriteScreen()),
-              );
-            },
-          ),
-        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: 'Cari judul film...',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchResults.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                },
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                _buildSection('Trending', _trendingMovies),
+                _buildSection('Popular', _popularMovies),
+                _buildSection('All Movies', _allMovies),
 
-                // jika sedang mencari, tampilkan hasil saja
-                if (_searchResults.isNotEmpty) ...[
-                  _buildSection('Search results', _searchResults),
-                ] else ...[
-                  _buildSection('Trending', _trendingMovies),
-                  _buildSection('Popular', _popularMovies),
-                  _buildSection('All Movies', _allMovies),
-                ],
-
-                SliverToBoxAdapter(
-                  child: const SizedBox(height: 24),
-                ), // bottom padding
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
             ),
     );
   }
 
   SliverToBoxAdapter _buildSection(String title, List<Movie> movies) {
-    if (movies.isEmpty)
+    if (movies.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     final ctrl = ScrollController();
 
@@ -190,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
+
                 // tombol kiri
                 Positioned(
                   left: 0,
@@ -208,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+
                 // tombol kanan
                 Positioned(
                   right: 0,
@@ -246,7 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // tetapkan tinggi kartu poster
               SizedBox(
                 height: 210,
                 child: Card(
@@ -282,10 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [
-                                Colors.black.withOpacity(0.0),
-                                Colors.black45,
-                              ],
+                              colors: [Colors.transparent, Colors.black45],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                             ),
